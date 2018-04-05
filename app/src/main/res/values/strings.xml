@@ -2,4 +2,5 @@
     <string name="app_name">Raffle Creator</string>
     <string name="action_settings">Settings</string>
     <string name="no_raffles_added">No Raffles Added</string>
+    <string name="please_enter_your_raffle_name">Please enter your Raffle Name:</string>
 </resources>
