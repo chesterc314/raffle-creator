@@ -32,4 +32,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     compile 'gr.pantrif:easy-android-splash-screen:0.0.1'
+    compile 'org.funktionale:funktionale-collections:1.2'
+    compile 'org.funktionale:funktionale-utils:1.2'
+    compile 'org.funktionale:funktionale-option:1.2'
+    compile 'org.funktionale:funktionale-composition:1.2'
+
 }

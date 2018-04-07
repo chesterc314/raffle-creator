@@ -1,21 +1,37 @@
 package co.za.chester.rafflecreator.rafflecreator
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
-import android.view.View
-import android.widget.Toast
 import android.support.v7.app.AlertDialog
-import android.widget.EditText
+import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.DefaultItemAnimator
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-
+import android.view.View
+import android.widget.EditText
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
     private var exitCounter: Int = 0
+    private lateinit var raffleRecyclerView: RecyclerView
+    private lateinit var raffles: ArrayList<String>
+    private lateinit var customRecyclerViewAdapter: CustomRecyclerViewAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         resetExitCounter()
+        raffleRecyclerView = findViewById(R.id.raffleRecyclerView)
+        raffles = ArrayList()
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(raffles)
+        val layoutManager = LinearLayoutManager(applicationContext)
+        raffleRecyclerView.layoutManager = layoutManager
+        raffleRecyclerView.itemAnimator = DefaultItemAnimator()
+        raffleRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
+        raffleRecyclerView.adapter = customRecyclerViewAdapter
+
     }
 
     private fun resetExitCounter() {
@@ -41,20 +57,21 @@ class MainActivity : AppCompatActivity() {
         val alertDialogBuilder = AlertDialog.Builder(this)
         alertDialogBuilder.setView(promptView)
 
-        val raffleNameInput = promptView
-                .findViewById(R.id.editTextDialogRaffleNameInput) as EditText
+        val raffleNameInput = promptView.findViewById(R.id.editTextDialogRaffleNameInput) as EditText
         alertDialogBuilder
-                .setPositiveButton("Add",
-                        { dialog, _ ->
-                            val raffleName = raffleNameInput.text
-                            if (raffleName.isNullOrEmpty()) {
-                                Toast.makeText(this, "No Raffle Name entered", Toast.LENGTH_LONG).show()
-                                dialog.dismiss()
-                            } else {
-                                Toast.makeText(this, "$raffleName added to list of raffles", Toast.LENGTH_LONG).show()
-                                dialog.dismiss()
-                            }
-                        })
+                .setCancelable(false)
+                .setPositiveButton("Add", { dialog, _ ->
+                    val raffleName = raffleNameInput.text.toString()
+                    if (!raffleName.isEmpty()) {
+                        Toast.makeText(this, "$raffleName added to list of raffles", Toast.LENGTH_LONG).show()
+                        raffles.add(raffleName)
+                        customRecyclerViewAdapter.notifyDataSetChanged()
+                        dialog.dismiss()
+                    } else {
+                        Toast.makeText(this, "No Raffle Name entered", Toast.LENGTH_LONG).show()
+                        dialog.dismiss()
+                    }
+                })
                 .setNegativeButton("Cancel",
                         { dialog, _ ->
                             dialog.cancel()
