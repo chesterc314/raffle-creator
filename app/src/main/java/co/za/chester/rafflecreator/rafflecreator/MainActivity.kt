@@ -25,13 +25,29 @@ class MainActivity : AppCompatActivity() {
         resetExitCounter()
         raffleRecyclerView = findViewById(R.id.raffleRecyclerView)
         raffles = ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(raffles)
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(raffles, { values, position, adapter ->
+            val alertDialogBuilder = AlertDialog.Builder(this)
+            alertDialogBuilder
+                    .setCancelable(false)
+                    .setMessage("Are you sure you want to remove this Raffle: ${values[position]}")
+                    .setPositiveButton("Yes", { dialog, _ ->
+                        values.removeAt(position)
+                        adapter.notifyDataSetChanged()
+                        dialog.dismiss()
+                    })
+                    .setNegativeButton("No",
+                            { dialog, _ ->
+                                dialog.cancel()
+                            })
+
+            val alertDialog = alertDialogBuilder.create()
+            alertDialog.show()
+        })
         val layoutManager = LinearLayoutManager(applicationContext)
         raffleRecyclerView.layoutManager = layoutManager
         raffleRecyclerView.itemAnimator = DefaultItemAnimator()
         raffleRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
         raffleRecyclerView.adapter = customRecyclerViewAdapter
-
     }
 
     private fun resetExitCounter() {
