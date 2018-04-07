@@ -1,5 +1,6 @@
 package co.za.chester.rafflecreator.rafflecreator
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -11,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import co.za.chester.rafflecreator.rafflecreator.domain.Raffle
 
 class MainActivity : AppCompatActivity() {
 
@@ -81,6 +83,11 @@ class MainActivity : AppCompatActivity() {
                     if (!raffleName.isEmpty()) {
                         Toast.makeText(this, "$raffleName added to list of raffles", Toast.LENGTH_LONG).show()
                         raffles.add(raffleName)
+                        val raffleIntent = Intent(this, RaffleActivity::class.java)
+                        val raffle = Raffle(raffleName)
+                        raffleIntent.putExtra(RaffleActivity.RAFFLE_NAME, raffle.name)
+                        raffleIntent.putExtra(RaffleActivity.RAFFLE_ID, raffle.id.toString())
+                        startActivity(raffleIntent)
                         customRecyclerViewAdapter.notifyDataSetChanged()
                         dialog.dismiss()
                     } else {
