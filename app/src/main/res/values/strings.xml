@@ -4,4 +4,7 @@
     <string name="no_raffles_added">No Raffles Added</string>
     <string name="please_enter_your_raffle_name">Please enter your Raffle Name:</string>
     <string name="remove_raffle">Remove raffle</string>
+    <string name="raffle_key">co.za.chester.RAFFLE_KEY</string>
+    <string name="raffle_name_key">co.za.chester.RAFFLE_NAME_KEY</string>
+    <string name="participant_key">co.za.chester.PARTICIPANT_KEY</string>
 </resources>

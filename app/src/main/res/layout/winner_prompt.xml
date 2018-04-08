@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_root"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:layout_centerHorizontal="true"
+    android:padding="10dp" >
+
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="268dp"
+        app:srcCompat="@mipmap/winner_congrats" />
+
+    <TextView
+        android:id="@+id/textViewWinner"
+        android:layout_width="fill_parent"
+        android:layout_height="225dp"
+        android:text="Winner"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="60sp" />
+
+</LinearLayout>

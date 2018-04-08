@@ -36,5 +36,5 @@ dependencies {
     compile 'org.funktionale:funktionale-utils:1.2'
     compile 'org.funktionale:funktionale-option:1.2'
     compile 'org.funktionale:funktionale-composition:1.2'
-
+    implementation 'com.robertlevonyan.view:CustomFloatingActionButton:2.0.4'
 }

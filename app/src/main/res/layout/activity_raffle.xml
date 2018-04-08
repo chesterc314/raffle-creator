@@ -40,4 +40,16 @@
         <requestFocus/>
     </AutoCompleteTextView>
 
+    <com.robertlevonyan.views.customfloatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:onClick="selectWinner"
+        app:fabColor="@android:color/holo_red_light"
+        app:fabText="PICK A WINNER"
+        app:fabTextAllCaps="true"
+        android:textSize="20sp"
+        android:layout_marginBottom="8dp"/>
+
 </RelativeLayout>
