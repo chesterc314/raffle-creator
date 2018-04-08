@@ -5,19 +5,18 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
-    android:layout_centerHorizontal="true"
-    android:padding="10dp" >
+    android:layout_centerHorizontal="true">
 
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="268dp"
-        app:srcCompat="@mipmap/winner_congrats" />
+        android:layout_height="350dp"
+        app:srcCompat="@mipmap/winner_yellow" />
 
     <TextView
         android:id="@+id/textViewWinner"
         android:layout_width="fill_parent"
-        android:layout_height="225dp"
+        android:layout_height="135dp"
         android:text="Winner"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="60sp" />
