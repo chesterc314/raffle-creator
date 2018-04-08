@@ -23,6 +23,7 @@ import co.za.chester.rafflecreator.rafflecreator.domain.Repository
 import org.funktionale.option.getOrElse
 import org.funktionale.option.toOption
 import java.util.*
+import kotlin.collections.ArrayList
 
 class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onInit(p0: Int) {
@@ -49,21 +50,36 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         autoCompleteTextViewParticipant = findViewById(R.id.autoCompleteTextViewParticipant)
         raffleRepository = Repository(this, getString(R.string.raffle_key))
         arrayList = java.util.ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, { values, position, adapter ->
-            values.removeAt(position)
-            participants.removeAt(position)
-            raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
-            adapter.notifyDataSetChanged()
-        })
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeParticipantAction())
         val layoutManager = LinearLayoutManager(applicationContext)
         participantRecyclerView.layoutManager = layoutManager
         participantRecyclerView.itemAnimator = DefaultItemAnimator()
         participantRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
         participantRecyclerView.adapter = customRecyclerViewAdapter
+        participantRecyclerView.addOnItemTouchListener(
+                RecyclerItemClickListener(this, participantRecyclerView, object : RecyclerItemClickListener.OnItemClickListener {
+                    override fun onItemClick(view: View, position: Int) {
+
+                    }
+
+                    override fun onLongItemClick(view: View?, position: Int) {
+                        removeParticipantAction()(arrayList, position, customRecyclerViewAdapter)
+                    }
+                })
+        )
         val maybeSupportActionBar = supportActionBar.toOption()
         maybeSupportActionBar.map { bar -> bar.setDisplayHomeAsUpEnabled(true) }
         textToSpeech = TextToSpeech(this, this)
         populateParticipantList()
+    }
+
+    private fun removeParticipantAction(): (ArrayList<String>, Int, RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>) -> Unit {
+        return { values, position, adapter ->
+            values.removeAt(position)
+            participants.removeAt(position)
+            raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
+            adapter.notifyDataSetChanged()
+        }
     }
 
     override fun onPause() {
@@ -135,18 +151,20 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     fun selectWinner(view: View) {
         val maybeWinner = Raffle(raffleName, participants.toSet(), raffleId).determineWinner()
         maybeWinner.map { winner ->
-            val layoutInflater = LayoutInflater.from(this)
-            val promptView = layoutInflater.inflate(R.layout.winner_prompt, null)
-            val alertDialogBuilder = AlertDialog.Builder(this)
-            alertDialogBuilder.setView(promptView)
-            val winnerTextView = promptView.findViewById(R.id.textViewWinner) as TextView
-            winnerTextView.text = winner.name
-            speak("And the winner is ${winner.name}")
-            alertDialogBuilder.setPositiveButton("Done", { dialog, _ ->
-                dialog.dismiss()
+            AudioPlayer.play(this, R.raw.winnerannouncement, {
+                val layoutInflater = LayoutInflater.from(this)
+                val promptView = layoutInflater.inflate(R.layout.winner_prompt, null)
+                val alertDialogBuilder = AlertDialog.Builder(this)
+                alertDialogBuilder.setView(promptView)
+                val winnerTextView = promptView.findViewById(R.id.textViewWinner) as TextView
+                winnerTextView.text = winner.name
+                speak(winner.name)
+                alertDialogBuilder.setPositiveButton("Done", { dialog, _ ->
+                    dialog.dismiss()
+                })
+                val alertDialog = alertDialogBuilder.create()
+                alertDialog.show()
             })
-            val alertDialog = alertDialogBuilder.create()
-            alertDialog.show()
         }.getOrElse {
             Toast.makeText(this, "No Participants to pick from", Toast.LENGTH_LONG).show()
         }
