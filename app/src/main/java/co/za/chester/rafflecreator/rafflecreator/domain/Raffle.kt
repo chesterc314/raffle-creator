@@ -77,7 +77,8 @@ class Repository(activity: Activity, keyRepo: String) {
         }
     }
 
-    fun readString(key: String, value: String = ""): String {
-        return sharedPref.getString(key, value)
+    fun readString(key: String, value: String = ""): Option<String> {
+        val result: String = sharedPref.getString(key, value)
+        return (if(result.isEmpty()) null else result).toOption()
     }
 }

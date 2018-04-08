@@ -12,6 +12,7 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.widget.AutoCompleteTextView
 import android.widget.TextView
@@ -38,7 +39,6 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var raffleRepository: Repository
     private lateinit var textToSpeech: TextToSpeech
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_raffle)
@@ -48,7 +48,7 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         participantRecyclerView = findViewById(R.id.participantRecyclerView)
         autoCompleteTextViewParticipant = findViewById(R.id.autoCompleteTextViewParticipant)
         raffleRepository = Repository(this, getString(R.string.raffle_key))
-        populateParticipantList()
+        arrayList = java.util.ArrayList()
         customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, { values, position, adapter ->
             values.removeAt(position)
             participants.removeAt(position)
@@ -60,20 +60,15 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         participantRecyclerView.itemAnimator = DefaultItemAnimator()
         participantRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
         participantRecyclerView.adapter = customRecyclerViewAdapter
-
         val maybeSupportActionBar = supportActionBar.toOption()
         maybeSupportActionBar.map { bar -> bar.setDisplayHomeAsUpEnabled(true) }
         textToSpeech = TextToSpeech(this, this)
+        populateParticipantList()
     }
 
     override fun onPause() {
-        super.onPause()
         raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
-    }
-
-    override fun onStart() {
-        super.onStart()
-        populateParticipantList()
+        super.onPause()
     }
 
     override fun onDestroy() {
@@ -86,15 +81,17 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun populateParticipantList() {
-        val participantData = raffleRepository.readString(getString(R.string.participant_key))
-        participants = ArrayList(Participant.toObjects(participantData).filter { participant -> participant.raffleId == raffleId })
-        arrayList = if (participantData.isNullOrEmpty()) {
+        val maybeParticipantData = raffleRepository.readString(getString(R.string.participant_key))
+        participants = maybeParticipantData.map { participant ->
+            ArrayList(Participant.toObjects(participant).filter { p -> p.raffleId == raffleId })
+        }.getOrElse {
             ArrayList()
-        } else {
-            ArrayList(Raffle.toObjects(participantData)
-                    .filter { participant -> participant.id == raffleId }
-                    .map { participant -> participant.name }.toList())
         }
+        arrayList.addAll(maybeParticipantData.map { participant ->
+            ArrayList(Participant.toObjects(participant).filter { p -> p.raffleId == raffleId }.map { p -> p.name })
+        }.getOrElse {
+            ArrayList()
+        })
         customRecyclerViewAdapter.notifyDataSetChanged()
     }
 
@@ -111,12 +108,25 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        val maybeItem = item.toOption()
+        return maybeItem.map { menuItem ->
+            when (menuItem.itemId) {
+                android.R.id.home -> {
+                    this.finish()
+                    true
+                }
+                else -> false
+            }
+        }.getOrElse { super.onOptionsItemSelected(item) }
+    }
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun speak(text: String){
+    private fun speak(text: String) {
         val maybeTextToSpeech = textToSpeech.toOption()
         maybeTextToSpeech.map { textToSpeech ->
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null,"")
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
         }
     }
 

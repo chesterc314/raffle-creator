@@ -14,6 +14,7 @@ import android.widget.EditText
 import android.widget.Toast
 import co.za.chester.rafflecreator.rafflecreator.domain.Raffle
 import co.za.chester.rafflecreator.rafflecreator.domain.Repository
+import org.funktionale.option.getOrElse
 
 
 class MainActivity : AppCompatActivity() {
@@ -31,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         resetExitCounter()
         raffleRecyclerView = findViewById(R.id.raffleRecyclerView)
         raffleRepository = Repository(this, getString(R.string.raffle_key))
-        populateRaffleList()
+        arrayList = java.util.ArrayList()
         customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, { values, position, adapter ->
             val alertDialogBuilder = AlertDialog.Builder(this)
             alertDialogBuilder
@@ -57,26 +58,26 @@ class MainActivity : AppCompatActivity() {
         raffleRecyclerView.itemAnimator = DefaultItemAnimator()
         raffleRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
         raffleRecyclerView.adapter = customRecyclerViewAdapter
-    }
-
-    override fun onPause() {
-        super.onPause()
-        raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))
-    }
-
-    override fun onStart() {
-        super.onStart()
         populateRaffleList()
     }
 
+    override fun onPause() {
+        raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))
+        super.onPause()
+    }
+
     private fun populateRaffleList() {
-        val raffleData = raffleRepository.readString(getString(R.string.raffle_name_key))
-        raffles = Raffle.toObjects(raffleData)
-        arrayList = if (raffleData.isNullOrEmpty()) {
+        val maybeRaffleData = raffleRepository.readString(getString(R.string.raffle_name_key))
+        raffles = maybeRaffleData.map { raffleData ->
+            ArrayList(Raffle.toObjects(raffleData))
+        }.getOrElse {
             ArrayList()
-        } else {
-            ArrayList(Raffle.toObjects(raffleData).map { raffle -> raffle.name }.toList())
         }
+        arrayList.addAll(maybeRaffleData.map { raffleData ->
+            ArrayList(Raffle.toObjects(raffleData).map { raffle -> raffle.name })
+        }.getOrElse {
+            ArrayList()
+        })
         customRecyclerViewAdapter.notifyDataSetChanged()
     }
 
@@ -111,10 +112,10 @@ class MainActivity : AppCompatActivity() {
                     if (!raffleName.isEmpty()) {
                         Toast.makeText(this, "$raffleName added to list of arrayList", Toast.LENGTH_LONG).show()
                         arrayList.add(raffleName)
-                        customRecyclerViewAdapter.notifyDataSetChanged()
                         val raffle = Raffle(raffleName)
                         raffles.add(raffle)
                         raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))
+                        customRecyclerViewAdapter.notifyDataSetChanged()
                         openParticipantActivity(raffle)
                         dialog.dismiss()
                     } else {
