@@ -33,7 +33,29 @@ class MainActivity : AppCompatActivity() {
         raffleRecyclerView = findViewById(R.id.raffleRecyclerView)
         raffleRepository = Repository(this, getString(R.string.raffle_key))
         arrayList = java.util.ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, { values, position, adapter ->
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeRaffleAction())
+        val layoutManager = LinearLayoutManager(applicationContext)
+        raffleRecyclerView.layoutManager = layoutManager
+        raffleRecyclerView.itemAnimator = DefaultItemAnimator()
+        raffleRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
+        raffleRecyclerView.adapter = customRecyclerViewAdapter
+        raffleRecyclerView.addOnItemTouchListener(
+                RecyclerItemClickListener(this, raffleRecyclerView, object : RecyclerItemClickListener.OnItemClickListener {
+                    override fun onItemClick(view: View, position: Int) {
+                        val raffle = raffles[position]
+                        openParticipantActivity(raffle)
+                    }
+
+                    override fun onLongItemClick(view: View?, position: Int) {
+                        removeRaffleAction()(arrayList, position, customRecyclerViewAdapter)
+                    }
+                })
+        )
+        populateRaffleList()
+    }
+
+    private fun removeRaffleAction(): (ArrayList<String>, Int, RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>) -> Unit {
+        return { values, position, adapter ->
             val alertDialogBuilder = AlertDialog.Builder(this)
             alertDialogBuilder
                     .setCancelable(false)
@@ -52,13 +74,7 @@ class MainActivity : AppCompatActivity() {
 
             val alertDialog = alertDialogBuilder.create()
             alertDialog.show()
-        })
-        val layoutManager = LinearLayoutManager(applicationContext)
-        raffleRecyclerView.layoutManager = layoutManager
-        raffleRecyclerView.itemAnimator = DefaultItemAnimator()
-        raffleRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
-        raffleRecyclerView.adapter = customRecyclerViewAdapter
-        populateRaffleList()
+        }
     }
 
     override fun onPause() {
