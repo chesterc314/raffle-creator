@@ -33,25 +33,27 @@ class MainActivity : AppCompatActivity() {
         raffleRecyclerView = findViewById(R.id.raffleRecyclerView)
         raffleRepository = Repository(this, getString(R.string.raffle_key))
         arrayList = java.util.ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeRaffleAction())
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeRaffleAction(), { position ->
+            val raffle = raffles[position]
+            openParticipantActivity(raffle)
+        })
         val layoutManager = LinearLayoutManager(applicationContext)
         raffleRecyclerView.layoutManager = layoutManager
         raffleRecyclerView.itemAnimator = DefaultItemAnimator()
         raffleRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
         raffleRecyclerView.adapter = customRecyclerViewAdapter
-        raffleRecyclerView.addOnItemTouchListener(
-                RecyclerItemClickListener(this, raffleRecyclerView, object : RecyclerItemClickListener.OnItemClickListener {
-                    override fun onItemClick(view: View, position: Int) {
-                        val raffle = raffles[position]
-                        openParticipantActivity(raffle)
-                    }
-
-                    override fun onLongItemClick(view: View?, position: Int) {
-                        removeRaffleAction()(arrayList, position, customRecyclerViewAdapter)
-                    }
-                })
-        )
         populateRaffleList()
+
+        if(raffles.isEmpty()){
+            val alertDialogBuilder = AlertDialog.Builder(this)
+            alertDialogBuilder
+                    .setMessage("No raffles added, please press + button below to add a raffle")
+                    .setPositiveButton("OK", { dialog, _ ->
+                dialog.dismiss()
+            })
+            val alertDialog = alertDialogBuilder.create()
+            alertDialog.show()
+        }
     }
 
     private fun removeRaffleAction(): (ArrayList<String>, Int, RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>) -> Unit {
@@ -85,15 +87,11 @@ class MainActivity : AppCompatActivity() {
     private fun populateRaffleList() {
         val maybeRaffleData = raffleRepository.readString(getString(R.string.raffle_name_key))
         raffles = maybeRaffleData.map { raffleData ->
-            ArrayList(Raffle.toObjects(raffleData))
+            Raffle.toObjects(raffleData)
         }.getOrElse {
             ArrayList()
         }
-        arrayList.addAll(maybeRaffleData.map { raffleData ->
-            ArrayList(Raffle.toObjects(raffleData).map { raffle -> raffle.name })
-        }.getOrElse {
-            ArrayList()
-        })
+        arrayList.addAll(ArrayList(raffles.map { raffle -> raffle.name }))
         customRecyclerViewAdapter.notifyDataSetChanged()
     }
 
@@ -126,7 +124,7 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("Add", { dialog, _ ->
                     val raffleName = raffleNameInput.text.toString()
                     if (!raffleName.isEmpty()) {
-                        Toast.makeText(this, "$raffleName added to list of arrayList", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "$raffleName added", Toast.LENGTH_LONG).show()
                         arrayList.add(raffleName)
                         val raffle = Raffle(raffleName)
                         raffles.add(raffle)

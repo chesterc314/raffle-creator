@@ -12,6 +12,15 @@
     android:paddingTop="@dimen/row_padding_vertical">
 
     <ImageButton
+        android:id="@+id/imageButtonEditRaffle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/imageButtonRemoveRaffle"
+        android:layout_marginRight="@dimen/row_padding_vertical"
+        app:srcCompat="@android:drawable/ic_menu_edit" />
+
+    <ImageButton
         android:id="@+id/imageButtonRemoveRaffle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -24,10 +33,9 @@
         android:id="@+id/label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/imageButtonRemoveRaffle"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/imageButtonRemoveRaffle"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/imageButtonEditRaffle"
         android:text="Item"
         android:textSize="30sp" />
 

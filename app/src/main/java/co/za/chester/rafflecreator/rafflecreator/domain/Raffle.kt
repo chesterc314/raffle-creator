@@ -21,7 +21,10 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
             val jsonObject = JSONObject(json)
             val name: String = jsonObject.getString("name")
             val id: String = jsonObject.getString("id")
-            return Raffle(name, id = UUID.fromString(id))
+            return Raffle(
+                    name,
+                    id = UUID.fromString(id)
+            )
         }
 
         fun fromObjects(raffles: ArrayList<Raffle>): String {

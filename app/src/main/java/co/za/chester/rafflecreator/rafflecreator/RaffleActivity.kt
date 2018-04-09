@@ -48,25 +48,14 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         this.title = "Raffle: $raffleName"
         participantRecyclerView = findViewById(R.id.participantRecyclerView)
         autoCompleteTextViewParticipant = findViewById(R.id.autoCompleteTextViewParticipant)
-        raffleRepository = Repository(this, getString(R.string.raffle_key))
+        raffleRepository = Repository(this, getString(R.string.participant_data_key))
         arrayList = java.util.ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeParticipantAction())
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeParticipantAction(), { _ -> })
         val layoutManager = LinearLayoutManager(applicationContext)
         participantRecyclerView.layoutManager = layoutManager
         participantRecyclerView.itemAnimator = DefaultItemAnimator()
         participantRecyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
         participantRecyclerView.adapter = customRecyclerViewAdapter
-        participantRecyclerView.addOnItemTouchListener(
-                RecyclerItemClickListener(this, participantRecyclerView, object : RecyclerItemClickListener.OnItemClickListener {
-                    override fun onItemClick(view: View, position: Int) {
-
-                    }
-
-                    override fun onLongItemClick(view: View?, position: Int) {
-                        removeParticipantAction()(arrayList, position, customRecyclerViewAdapter)
-                    }
-                })
-        )
         val maybeSupportActionBar = supportActionBar.toOption()
         maybeSupportActionBar.map { bar -> bar.setDisplayHomeAsUpEnabled(true) }
         textToSpeech = TextToSpeech(this, this)
@@ -103,11 +92,7 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }.getOrElse {
             ArrayList()
         }
-        arrayList.addAll(maybeParticipantData.map { participant ->
-            ArrayList(Participant.toObjects(participant).filter { p -> p.raffleId == raffleId }.map { p -> p.name })
-        }.getOrElse {
-            ArrayList()
-        })
+        arrayList.addAll(ArrayList(participants.map { p -> p.name }))
         customRecyclerViewAdapter.notifyDataSetChanged()
     }
 
