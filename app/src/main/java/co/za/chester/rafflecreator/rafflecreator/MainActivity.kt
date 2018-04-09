@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import co.za.chester.rafflecreator.rafflecreator.domain.Participant
 import co.za.chester.rafflecreator.rafflecreator.domain.Raffle
 import co.za.chester.rafflecreator.rafflecreator.domain.Repository
 import org.funktionale.option.getOrElse
@@ -44,13 +45,13 @@ class MainActivity : AppCompatActivity() {
         raffleRecyclerView.adapter = customRecyclerViewAdapter
         populateRaffleList()
 
-        if(raffles.isEmpty()){
+        if (raffles.isEmpty()) {
             val alertDialogBuilder = AlertDialog.Builder(this)
             alertDialogBuilder
                     .setMessage("No raffles added, please press + button below to add a raffle")
                     .setPositiveButton("OK", { dialog, _ ->
-                dialog.dismiss()
-            })
+                        dialog.dismiss()
+                    })
             val alertDialog = alertDialogBuilder.create()
             alertDialog.show()
         }
@@ -63,8 +64,19 @@ class MainActivity : AppCompatActivity() {
                     .setCancelable(false)
                     .setMessage("Are you sure you want to remove this Raffle: ${values[position]}")
                     .setPositiveButton("Yes", { dialog, _ ->
+                        val maybeParticipantData = raffleRepository.readString(getString(R.string.participant_key))
+                        val participants = maybeParticipantData.map { participant ->
+                            ArrayList(Participant.toObjects(participant))
+                        }.getOrElse {
+                            ArrayList()
+                        }
+                        val raffle = raffles[position]
+                        val isParticipantsRemoved = participants.removeAll { p -> p.raffleId == raffle.id }
                         values.removeAt(position)
                         raffles.removeAt(position)
+                        if (isParticipantsRemoved) {
+                            raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
+                        }
                         raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))
                         adapter.notifyDataSetChanged()
                         dialog.dismiss()

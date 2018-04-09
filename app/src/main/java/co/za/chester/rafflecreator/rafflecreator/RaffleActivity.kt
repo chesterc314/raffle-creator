@@ -20,16 +20,13 @@ import android.widget.Toast
 import co.za.chester.rafflecreator.rafflecreator.domain.Participant
 import co.za.chester.rafflecreator.rafflecreator.domain.Raffle
 import co.za.chester.rafflecreator.rafflecreator.domain.Repository
+import org.funktionale.option.firstOption
 import org.funktionale.option.getOrElse
 import org.funktionale.option.toOption
 import java.util.*
 import kotlin.collections.ArrayList
 
 class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
-    override fun onInit(p0: Int) {
-
-    }
-
     private lateinit var participantRecyclerView: RecyclerView
     private lateinit var arrayList: ArrayList<String>
     private lateinit var participants: ArrayList<Participant>
@@ -48,9 +45,10 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         this.title = "Raffle: $raffleName"
         participantRecyclerView = findViewById(R.id.participantRecyclerView)
         autoCompleteTextViewParticipant = findViewById(R.id.autoCompleteTextViewParticipant)
-        raffleRepository = Repository(this, getString(R.string.participant_data_key))
+        raffleRepository = Repository(this, getString(R.string.raffle_key))
         arrayList = java.util.ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeParticipantAction(), { _ -> })
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeParticipantAction(), { _ ->
+        }, false)
         val layoutManager = LinearLayoutManager(applicationContext)
         participantRecyclerView.layoutManager = layoutManager
         participantRecyclerView.itemAnimator = DefaultItemAnimator()
@@ -62,10 +60,14 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         populateParticipantList()
     }
 
+    override fun onInit(p0: Int) {
+
+    }
+
     private fun removeParticipantAction(): (ArrayList<String>, Int, RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>) -> Unit {
         return { values, position, adapter ->
+            participants.removeAll { p -> p.name == values[position] && p.raffleId == raffleId }
             values.removeAt(position)
-            participants.removeAt(position)
             raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
             adapter.notifyDataSetChanged()
         }
@@ -88,11 +90,11 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun populateParticipantList() {
         val maybeParticipantData = raffleRepository.readString(getString(R.string.participant_key))
         participants = maybeParticipantData.map { participant ->
-            ArrayList(Participant.toObjects(participant).filter { p -> p.raffleId == raffleId })
+            ArrayList(Participant.toObjects(participant))
         }.getOrElse {
             ArrayList()
         }
-        arrayList.addAll(ArrayList(participants.map { p -> p.name }))
+        arrayList.addAll(ArrayList(participants.filter { p -> p.raffleId == raffleId }.map { p -> p.name }))
         customRecyclerViewAdapter.notifyDataSetChanged()
     }
 
@@ -101,10 +103,15 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (participantName.isEmpty()) {
             Toast.makeText(this, "No Participant Name entered", Toast.LENGTH_LONG).show()
         } else {
-            arrayList.add(participantName)
-            participants.add(Participant(participantName, raffleId))
-            raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
-            customRecyclerViewAdapter.notifyDataSetChanged()
+            val maybeDuplicateName = this.arrayList.firstOption { a -> a == participantName }
+            maybeDuplicateName.map { duplicateName ->
+                Toast.makeText(this, "Participant Name: $duplicateName is already added", Toast.LENGTH_LONG).show()
+            }.getOrElse {
+                arrayList.add(participantName)
+                participants.add(Participant(participantName, raffleId))
+                raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
+                customRecyclerViewAdapter.notifyDataSetChanged()
+            }
             this.autoCompleteTextViewParticipant.setText("")
         }
     }

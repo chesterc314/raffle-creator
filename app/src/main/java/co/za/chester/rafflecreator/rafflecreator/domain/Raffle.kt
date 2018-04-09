@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import org.funktionale.option.Option
+import org.funktionale.option.firstOption
 import org.funktionale.option.toOption
 import org.json.JSONArray
 import org.json.JSONObject
@@ -11,7 +12,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 data class Raffle(val name: String, private val participants: Set<Participant> = emptySet(), val id: UUID = UUID.randomUUID()) {
-    fun determineWinner(): Option<Participant> = this.participants.shuffled().firstOrNull().toOption()
+    fun determineWinner(): Option<Participant> = this.participants.filter{p -> p.raffleId == this.id}.shuffled().firstOption()
     override fun toString(): String = JSONObject()
             .put("name", this.name)
             .put("id", this.id.toString()).toString()
@@ -29,14 +30,14 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
 
         fun fromObjects(raffles: ArrayList<Raffle>): String {
             val jsonArray = JSONArray()
-            raffles.forEach{ raffle -> jsonArray.put(raffle.toString()) }
+            raffles.forEach { raffle -> jsonArray.put(raffle.toString()) }
             return jsonArray.toString()
         }
 
         fun toObjects(json: String): ArrayList<Raffle> {
             val jsonArray = JSONArray(json)
-            val raffles : ArrayList<Raffle> = ArrayList()
-            (0 until jsonArray.length()).forEach{ index -> raffles.add(toObject(jsonArray.getString(index))) }
+            val raffles: ArrayList<Raffle> = ArrayList()
+            (0 until jsonArray.length()).forEach { index -> raffles.add(toObject(jsonArray.getString(index))) }
             return raffles
         }
     }
@@ -57,14 +58,14 @@ data class Participant(val name: String, val raffleId: UUID) {
 
         fun fromObjects(participants: ArrayList<Participant>): String {
             val jsonArray = JSONArray()
-            participants.forEach{ participant -> jsonArray.put(participant.toString()) }
+            participants.forEach { participant -> jsonArray.put(participant.toString()) }
             return jsonArray.toString()
         }
 
         fun toObjects(json: String): ArrayList<Participant> {
             val jsonArray = JSONArray(json)
-            val participants : ArrayList<Participant> = ArrayList()
-            (0 until jsonArray.length()).forEach{ index -> participants.add(toObject(jsonArray.getString(index))) }
+            val participants: ArrayList<Participant> = ArrayList()
+            (0 until jsonArray.length()).forEach { index -> participants.add(toObject(jsonArray.getString(index))) }
             return participants
         }
     }
@@ -82,6 +83,6 @@ class Repository(activity: Activity, keyRepo: String) {
 
     fun readString(key: String, value: String = ""): Option<String> {
         val result: String = sharedPref.getString(key, value)
-        return (if(result.isEmpty()) null else result).toOption()
+        return (if (result.isEmpty()) null else result).toOption()
     }
 }
