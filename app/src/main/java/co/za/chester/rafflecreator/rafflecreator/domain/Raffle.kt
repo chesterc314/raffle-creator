@@ -21,7 +21,7 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
                             .map { _ -> participant }
                     numberOfParticipantPerEntry
                 }
-        var shuffledList: List<Participant> = raffleParticipants.sortedBy { p -> p.name }.shuffled()
+        var shuffledList: List<Participant> = raffleParticipants.shuffled()
         (0 until raffleParticipants.size).forEach { _ ->
             shuffledList = shuffledList.shuffled()
         }
