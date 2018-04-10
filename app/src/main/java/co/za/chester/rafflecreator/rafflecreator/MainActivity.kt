@@ -22,9 +22,8 @@ class MainActivity : AppCompatActivity() {
 
     private var exitCounter: Int = 0
     private lateinit var raffleRecyclerView: RecyclerView
-    private lateinit var arrayList: ArrayList<String>
     private lateinit var raffles: ArrayList<Raffle>
-    private lateinit var customRecyclerViewAdapter: CustomRecyclerViewAdapter
+    private lateinit var customRecyclerViewAdapter: CustomRecyclerViewAdapter<Raffle>
     private lateinit var raffleRepository: Repository
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +32,10 @@ class MainActivity : AppCompatActivity() {
         resetExitCounter()
         raffleRecyclerView = findViewById(R.id.raffleRecyclerView)
         raffleRepository = Repository(this, getString(R.string.raffle_key))
-        arrayList = java.util.ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeRaffleAction(), { position ->
+        raffles = java.util.ArrayList()
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(raffles, { raffle, customViewHolder ->
+            customViewHolder.label.text = raffle.name
+        }, removeRaffleAction(), { position ->
             val raffle = raffles[position]
             openParticipantActivity(raffle)
         })
@@ -57,12 +58,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun removeRaffleAction(): (ArrayList<String>, Int, RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>) -> Unit {
+    private fun removeRaffleAction(): (ArrayList<Raffle>, Int, RecyclerView.Adapter<CustomViewHolder>) -> Unit {
         return { values, position, adapter ->
             val alertDialogBuilder = AlertDialog.Builder(this)
             alertDialogBuilder
                     .setCancelable(false)
-                    .setMessage("Are you sure you want to remove this Raffle: ${values[position]}")
+                    .setMessage("Are you sure you want to remove this Raffle: ${values[position].name}")
                     .setPositiveButton("Yes", { dialog, _ ->
                         val maybeParticipantData = raffleRepository.readString(getString(R.string.participant_key))
                         val participants = maybeParticipantData.map { participant ->
@@ -72,7 +73,6 @@ class MainActivity : AppCompatActivity() {
                         }
                         val raffle = raffles[position]
                         val isParticipantsRemoved = participants.removeAll { p -> p.raffleId == raffle.id }
-                        values.removeAt(position)
                         raffles.removeAt(position)
                         if (isParticipantsRemoved) {
                             raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
@@ -98,12 +98,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun populateRaffleList() {
         val maybeRaffleData = raffleRepository.readString(getString(R.string.raffle_name_key))
-        raffles = maybeRaffleData.map { raffleData ->
+        raffles.addAll(maybeRaffleData.map { raffleData ->
             Raffle.toObjects(raffleData)
         }.getOrElse {
             ArrayList()
-        }
-        arrayList.addAll(ArrayList(raffles.map { raffle -> raffle.name }))
+        })
         customRecyclerViewAdapter.notifyDataSetChanged()
     }
 
@@ -137,7 +136,6 @@ class MainActivity : AppCompatActivity() {
                     val raffleName = raffleNameInput.text.toString()
                     if (!raffleName.isEmpty()) {
                         Toast.makeText(this, "$raffleName added", Toast.LENGTH_LONG).show()
-                        arrayList.add(raffleName)
                         val raffle = Raffle(raffleName)
                         raffles.add(raffle)
                         raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))

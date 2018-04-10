@@ -12,7 +12,23 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 data class Raffle(val name: String, private val participants: Set<Participant> = emptySet(), val id: UUID = UUID.randomUUID()) {
-    fun determineWinner(): Option<Participant> = this.participants.filter{p -> p.raffleId == this.id}.shuffled().firstOption()
+    fun determineWinner(): Option<Participant> {
+        val raffleParticipants: List<Participant> = this.participants
+                .filter { participant -> participant.raffleId == this.id }
+                .flatMap { participant ->
+                    val numberOfParticipantPerEntry: List<Participant> = (0 until participant.entryCount)
+                            .toList()
+                            .map { _ -> participant }
+                    numberOfParticipantPerEntry
+                }
+        var shuffledList: List<Participant> = raffleParticipants.sortedBy { p -> p.name }.shuffled()
+        (0 until raffleParticipants.size).forEach { _ ->
+            shuffledList = shuffledList.shuffled()
+        }
+
+        return shuffledList.firstOption()
+    }
+
     override fun toString(): String = JSONObject()
             .put("name", this.name)
             .put("id", this.id.toString()).toString()
@@ -43,9 +59,10 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
     }
 }
 
-data class Participant(val name: String, val raffleId: UUID) {
+data class Participant(val name: String, val raffleId: UUID, val entryCount: Int) {
     override fun toString(): String = JSONObject()
             .put("name", this.name)
+            .put("entryCount", this.entryCount)
             .put("raffleId", this.raffleId.toString()).toString()
 
     companion object {
@@ -53,7 +70,8 @@ data class Participant(val name: String, val raffleId: UUID) {
             val jsonObject = JSONObject(json)
             val name: String = jsonObject.getString("name")
             val raffleId: String = jsonObject.getString("raffleId")
-            return Participant(name, UUID.fromString(raffleId))
+            val entryCount: Int = jsonObject.getInt("entryCount")
+            return Participant(name, UUID.fromString(raffleId), entryCount)
         }
 
         fun fromObjects(participants: ArrayList<Participant>): String {
