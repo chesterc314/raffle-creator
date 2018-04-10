@@ -9,8 +9,7 @@ import android.widget.TextView
 
 class CustomRecyclerViewAdapter(private val values: ArrayList<String>,
                                 private val removeAction: (ArrayList<String>, Int, RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>) -> Unit,
-                                private val editAction: (Int) -> Unit,
-                                private val enableEditButton: Boolean = true) : RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>() {
+                                private val editAction: (Int) -> Unit) : RecyclerView.Adapter<CustomRecyclerViewAdapter.CustomViewHolder>() {
     inner class CustomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val label: TextView = view.findViewById<View>(R.id.label) as TextView
         val removeButton: ImageButton = view.findViewById(R.id.imageButtonRemoveRaffle) as ImageButton
@@ -29,13 +28,10 @@ class CustomRecyclerViewAdapter(private val values: ArrayList<String>,
         holder.removeButton.setOnClickListener({ _ ->
             removeAction(this.values, position, this)
         })
-        if(enableEditButton) {
-            holder.editButton.setOnClickListener({ _ ->
-                editAction(position)
-            })
-        }else{
-            holder.editButton.visibility = View.GONE
-        }
+
+        holder.editButton.setOnClickListener({ _ ->
+            editAction(position)
+        })
     }
 
     override fun getItemCount(): Int {

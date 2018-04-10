@@ -6,12 +6,12 @@ import org.funktionale.option.Option
 
 object AudioPlayer {
     fun play(context: Context, resId: Int, completePlayAction: () -> Unit) {
-        var maybeMediaPlayer: Option<MediaPlayer> = Option.None
+        var maybeMediaPlayer: Option<MediaPlayer> = Option.empty()
         fun stop() {
             maybeMediaPlayer.map { mediaPlayer ->
                 mediaPlayer.stop()
                 mediaPlayer.release()
-                maybeMediaPlayer = Option.None
+                maybeMediaPlayer = Option.empty()
             }
         }
         stop()

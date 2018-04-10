@@ -17,11 +17,13 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AutoCompleteTextView
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import co.za.chester.rafflecreator.rafflecreator.domain.Participant
 import co.za.chester.rafflecreator.rafflecreator.domain.Raffle
 import co.za.chester.rafflecreator.rafflecreator.domain.Repository
+import org.funktionale.option.Option
 import org.funktionale.option.firstOption
 import org.funktionale.option.getOrElse
 import org.funktionale.option.toOption
@@ -34,10 +36,12 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var participants: ArrayList<Participant>
     private lateinit var customRecyclerViewAdapter: CustomRecyclerViewAdapter
     private lateinit var autoCompleteTextViewParticipant: AutoCompleteTextView
+    private lateinit var entryCountEditText: EditText
     private lateinit var raffleName: String
     private lateinit var raffleId: UUID
     private lateinit var raffleRepository: Repository
     private lateinit var textToSpeech: TextToSpeech
+    private var maybeParticipant: Option<Participant> = Option.empty()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,10 +51,16 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         this.title = "Raffle: $raffleName"
         participantRecyclerView = findViewById(R.id.participantRecyclerView)
         autoCompleteTextViewParticipant = findViewById(R.id.autoCompleteTextViewParticipant)
+        entryCountEditText = findViewById(R.id.entryCountEditText)
         raffleRepository = Repository(this, getString(R.string.raffle_key))
         arrayList = java.util.ArrayList()
-        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeParticipantAction(), { _ ->
-        }, false)
+        customRecyclerViewAdapter = CustomRecyclerViewAdapter(arrayList, removeParticipantAction(), { position ->
+            maybeParticipant = Option.Some(participants.filter { p -> p.raffleId == raffleId }[position])
+            maybeParticipant.map { participant ->
+                this.autoCompleteTextViewParticipant.setText(participant.name)
+                this.entryCountEditText.setText(participant.entryCount.toString())
+            }
+        })
         val layoutManager = LinearLayoutManager(applicationContext)
         participantRecyclerView.layoutManager = layoutManager
         participantRecyclerView.itemAnimator = DefaultItemAnimator()
@@ -102,20 +112,42 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     fun addParticipant(view: View) {
         val participantName: String = this.autoCompleteTextViewParticipant.text.toString()
+        val entryCountText = this.entryCountEditText.text.toString().trim()
+        val entryCount: Int = if(entryCountText.isEmpty()){1}else{entryCountText.toInt()}
         if (participantName.isEmpty()) {
             Toast.makeText(this, "No Participant Name entered", Toast.LENGTH_LONG).show()
         } else {
-            val maybeDuplicateName = this.arrayList.firstOption { a -> a.trim() == participantName.trim() }
-            maybeDuplicateName.map { duplicateName ->
-                Toast.makeText(this, "Participant Name: $duplicateName is already added", Toast.LENGTH_LONG).show()
+            maybeParticipant.map { participant ->
+                arrayList.remove(participant.name)
+                participants.remove(participant)
+                addParticipantToList(participantName, entryCount)
+                maybeParticipant = Option.empty()
             }.getOrElse {
-                arrayList.add(participantName)
-                participants.add(Participant(participantName, raffleId))
-                raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
-                customRecyclerViewAdapter.notifyDataSetChanged()
+                checkForDuplicate(participantName, entryCount)
             }
-            this.autoCompleteTextViewParticipant.setText("")
         }
+    }
+
+    private fun checkForDuplicate(participantName: String, entryCount: Int) {
+        val maybeDuplicateName = this.arrayList.firstOption { a -> a.trim() == participantName.trim() }
+        maybeDuplicateName.map { duplicateName ->
+            Toast.makeText(this, "Participant Name: $duplicateName is already added", Toast.LENGTH_LONG).show()
+        }.getOrElse {
+            addParticipantToList(participantName, entryCount)
+        }
+    }
+
+    private fun addParticipantToList(participantName: String, entryCount: Int) {
+        arrayList.add(participantName)
+        participants.add(Participant(participantName, raffleId, entryCount))
+        raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(participants))
+        customRecyclerViewAdapter.notifyDataSetChanged()
+        clearFields()
+    }
+
+    private fun clearFields() {
+        this.autoCompleteTextViewParticipant.setText("")
+        this.entryCountEditText.setText("")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -137,7 +169,7 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val participantNamesForSharing: String = participants
                             .filter { p -> p.raffleId == raffleId }
                             .sortedBy { p -> p.name }
-                            .fold("", {acc, p -> acc + p.name +"\n" })
+                            .fold("", { acc, p -> acc + "Name: ${p.name} Entries: ${p.entryCount}\n"})
                     shareIntent.putExtra(Intent.EXTRA_TEXT, "Raffle Name: $raffleName\n$participantNamesForSharing")
                     shareIntent.type = "text/plain"
                     startActivity(Intent.createChooser(shareIntent, "Share with"))
@@ -160,6 +192,7 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun selectWinner(view: View) {
+        clearFields()
         val maybeWinner = Raffle(raffleName, participants.toSet(), raffleId).determineWinner()
         maybeWinner.map { winner ->
             AudioPlayer.play(this, R.raw.winnerannouncement, {
