@@ -1,6 +1,7 @@
 package co.za.chester.rafflecreator.rafflecreator
 
 import android.annotation.TargetApi
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
@@ -12,6 +13,7 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AutoCompleteTextView
@@ -103,7 +105,7 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (participantName.isEmpty()) {
             Toast.makeText(this, "No Participant Name entered", Toast.LENGTH_LONG).show()
         } else {
-            val maybeDuplicateName = this.arrayList.firstOption { a -> a == participantName }
+            val maybeDuplicateName = this.arrayList.firstOption { a -> a.trim() == participantName.trim() }
             maybeDuplicateName.map { duplicateName ->
                 Toast.makeText(this, "Participant Name: $duplicateName is already added", Toast.LENGTH_LONG).show()
             }.getOrElse {
@@ -116,12 +118,29 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         val maybeItem = item.toOption()
         return maybeItem.map { menuItem ->
             when (menuItem.itemId) {
                 android.R.id.home -> {
                     this.finish()
+                    true
+                }
+                R.id.menu_item_share -> {
+                    val shareIntent = Intent()
+                    shareIntent.action = Intent.ACTION_SEND
+                    val participantNamesForSharing: String = participants
+                            .filter { p -> p.raffleId == raffleId }
+                            .sortedBy { p -> p.name }
+                            .fold("", {acc, p -> acc + p.name +"\n" })
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, "Raffle Name: $raffleName\n$participantNamesForSharing")
+                    shareIntent.type = "text/plain"
+                    startActivity(Intent.createChooser(shareIntent, "Share with"))
                     true
                 }
                 else -> false
