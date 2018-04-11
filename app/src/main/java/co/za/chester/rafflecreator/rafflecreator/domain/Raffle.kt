@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import org.funktionale.option.Option
-import org.funktionale.option.firstOption
 import org.funktionale.option.toOption
 import org.json.JSONArray
 import org.json.JSONObject
@@ -21,12 +20,8 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
                             .map { _ -> participant }
                     numberOfParticipantPerEntry
                 }
-        var shuffledList: List<Participant> = raffleParticipants.shuffled()
-        (0 until raffleParticipants.size).forEach { _ ->
-            shuffledList = shuffledList.shuffled()
-        }
-
-        return shuffledList.firstOption()
+        val randomIndex = Random().nextInt(raffleParticipants.size)
+        return raffleParticipants.elementAtOrNull(randomIndex).toOption()
     }
 
     override fun toString(): String = JSONObject()
