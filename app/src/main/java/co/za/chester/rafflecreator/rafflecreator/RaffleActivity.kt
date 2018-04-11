@@ -89,8 +89,9 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     .setCancelable(false)
                     .setMessage("Are you sure you want to remove this Participant: ${values[position].name}")
                     .setPositiveButton("Yes", { dialog, _ ->
-                        participants.removeAll { p -> p.name == values[position].name && p.raffleId == raffleId }
-                        allParticipants.removeAll { p -> p.name == values[position].name && p.raffleId == raffleId }
+                        val participantToBeRemoved: Participant = values[position]
+                        values.remove(participantToBeRemoved)
+                        allParticipants.remove(participantToBeRemoved)
                         raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(allParticipants))
                         adapter.notifyDataSetChanged()
                         dialog.dismiss()
