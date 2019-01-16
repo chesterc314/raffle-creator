@@ -10,8 +10,8 @@ android {
         applicationId "co.za.chester.rafflecreator.rafflecreator"
         minSdkVersion 19
         targetSdkVersion 26
-        versionCode 3
-        versionName "2.1"
+        versionCode 4
+        versionName "2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -31,10 +31,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile 'gr.pantrif:easy-android-splash-screen:0.0.1'
-    compile 'org.funktionale:funktionale-collections:1.2'
-    compile 'org.funktionale:funktionale-utils:1.2'
-    compile 'org.funktionale:funktionale-option:1.2'
-    compile 'org.funktionale:funktionale-composition:1.2'
+    implementation 'gr.pantrif:easy-android-splash-screen:0.0.1'
+    implementation 'org.funktionale:funktionale-collections:1.2'
+    implementation 'org.funktionale:funktionale-utils:1.2'
+    implementation 'org.funktionale:funktionale-option:1.2'
+    implementation 'org.funktionale:funktionale-composition:1.2'
     implementation 'com.robertlevonyan.view:CustomFloatingActionButton:2.0.4'
 }

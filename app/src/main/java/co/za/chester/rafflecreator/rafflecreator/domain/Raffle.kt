@@ -17,11 +17,16 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
                 .flatMap { participant ->
                     val numberOfParticipantPerEntry: List<Participant> = (0 until participant.entryCount)
                             .toList()
-                            .map { _ -> participant }
+                            .map { participant }
                     numberOfParticipantPerEntry
                 }
-        val randomIndex = Random().nextInt(raffleParticipants.size)
-        return raffleParticipants.elementAtOrNull(randomIndex).toOption()
+        val maybeRandomIndex = if(raffleParticipants.isNotEmpty()){
+            Option.Some(Random().nextInt(raffleParticipants.size))
+        }else{
+            Option.None
+        }
+
+        return maybeRandomIndex.flatMap{randomIndex -> raffleParticipants.elementAtOrNull(randomIndex).toOption()}
     }
 
     override fun toString(): String = JSONObject()
