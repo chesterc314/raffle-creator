@@ -10,7 +10,7 @@ import org.json.JSONObject
 import java.util.*
 import kotlin.collections.ArrayList
 
-data class Raffle(val name: String, private val participants: Set<Participant> = emptySet(), val id: UUID = UUID.randomUUID()) {
+data class Raffle(val name: String, val participants: Set<Participant> = emptySet(), val id: UUID = UUID.randomUUID()) {
     fun determineWinner(): Option<Participant> {
         val raffleParticipants: List<Participant> = this.participants
                 .filter { participant -> participant.raffleId == this.id }
@@ -20,13 +20,13 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
                             .map { participant }
                     numberOfParticipantPerEntry
                 }
-        val maybeRandomIndex = if(raffleParticipants.isNotEmpty()){
+        val maybeRandomIndex = if (raffleParticipants.isNotEmpty()) {
             Option.Some(Random().nextInt(raffleParticipants.size))
-        }else{
+        } else {
             Option.None
         }
 
-        return maybeRandomIndex.flatMap{randomIndex -> raffleParticipants.elementAtOrNull(randomIndex).toOption()}
+        return maybeRandomIndex.flatMap { randomIndex -> raffleParticipants.elementAtOrNull(randomIndex).toOption() }
     }
 
     override fun toString(): String = JSONObject()
@@ -55,6 +55,21 @@ data class Raffle(val name: String, private val participants: Set<Participant> =
             val raffles: ArrayList<Raffle> = ArrayList()
             (0 until jsonArray.length()).forEach { index -> raffles.add(toObject(jsonArray.getString(index))) }
             return raffles
+        }
+
+        fun toRaffle(raw: String): Raffle {
+            val lines = raw.lines()
+            val raffleName = lines[0].split(":")[1].trim()
+            val raffleId = UUID.randomUUID()
+            val participants = lines.filter { it -> !it.contains("Raffle Name:") }.map { line ->
+                val cleanedLine =
+                        line.replace("Name: ", "")
+                                .replace(" Entries", "")
+                val name = cleanedLine.split(":")[0]
+                val count = cleanedLine.split(":")[1].trim().toInt()
+                Participant(name, raffleId, count)
+            }.toSet()
+            return Raffle(raffleName, participants, raffleId)
         }
     }
 }
