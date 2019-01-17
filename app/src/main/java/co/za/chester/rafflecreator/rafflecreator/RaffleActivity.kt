@@ -88,18 +88,18 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             alertDialogBuilder
                     .setCancelable(false)
                     .setMessage("Are you sure you want to remove this Participant: ${values[position].name}")
-                    .setPositiveButton("Yes", { dialog, _ ->
+                    .setPositiveButton("Yes") { dialog, _ ->
                         val participantToBeRemoved: Participant = values[position]
                         values.remove(participantToBeRemoved)
                         allParticipants.remove(participantToBeRemoved)
                         raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(allParticipants))
                         adapter.notifyDataSetChanged()
                         dialog.dismiss()
-                    })
-                    .setNegativeButton("No",
-                            { dialog, _ ->
-                                dialog.cancel()
-                            })
+                    }
+                    .setNegativeButton("No"
+                    ) { dialog, _ ->
+                        dialog.cancel()
+                    }
 
             val alertDialog = alertDialogBuilder.create()
             alertDialog.show()
@@ -195,7 +195,7 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     shareIntent.action = Intent.ACTION_SEND
                     val participantNamesForSharing: String = participants
                             .sortedBy { p -> p.name }
-                            .fold("", { acc, p -> acc + "Name: ${p.name} Entries: ${p.entryCount}\n" })
+                            .fold("") { acc, p -> acc + "Name: ${p.name} Entries: ${p.entryCount}\n" }
                     shareIntent.putExtra(Intent.EXTRA_TEXT, "Raffle Name: $raffleName\n$participantNamesForSharing")
                     shareIntent.type = "text/plain"
                     startActivity(Intent.createChooser(shareIntent, "Share with"))
@@ -221,7 +221,7 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         clearFields()
         val maybeWinner = Raffle(raffleName, participants.toSet(), raffleId).determineWinner()
         maybeWinner.map { winner ->
-            AudioPlayer.play(this, R.raw.winnerannouncement, {
+            AudioPlayer.play(this, R.raw.winnerannouncement) {
                 val layoutInflater = LayoutInflater.from(this)
                 val promptView = layoutInflater.inflate(R.layout.winner_prompt, null)
                 val alertDialogBuilder = AlertDialog.Builder(this)
@@ -229,12 +229,12 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val winnerTextView = promptView.findViewById(R.id.textViewWinner) as TextView
                 winnerTextView.text = winner.name
                 speak(winner.name)
-                alertDialogBuilder.setPositiveButton("Done", { dialog, _ ->
+                alertDialogBuilder.setPositiveButton("Done") { dialog, _ ->
                     dialog.dismiss()
-                })
+                }
                 val alertDialog = alertDialogBuilder.create()
                 alertDialog.show()
-            })
+            }
         }.getOrElse {
             Toast.makeText(this, "No Participants to pick from", Toast.LENGTH_LONG).show()
         }

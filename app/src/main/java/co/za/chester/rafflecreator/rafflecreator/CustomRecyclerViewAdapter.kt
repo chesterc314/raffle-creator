@@ -28,13 +28,13 @@ class CustomRecyclerViewAdapter<T>(
         val value = this.values[position]
         viewAction(value, holder)
 
-        holder.removeButton.setOnClickListener({ _ ->
+        holder.removeButton.setOnClickListener { _ ->
             removeAction(this.values, position, this)
-        })
+        }
 
-        holder.editButton.setOnClickListener({ _ ->
+        holder.editButton.setOnClickListener { _ ->
             editAction(position)
-        })
+        }
     }
 
     override fun getItemCount(): Int {

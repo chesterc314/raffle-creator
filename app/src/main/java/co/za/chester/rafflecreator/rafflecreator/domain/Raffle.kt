@@ -7,6 +7,7 @@ import org.funktionale.option.Option
 import org.funktionale.option.toOption
 import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -57,19 +58,23 @@ data class Raffle(val name: String, val participants: Set<Participant> = emptySe
             return raffles
         }
 
-        fun toRaffle(raw: String): Raffle {
-            val lines = raw.lines()
-            val raffleName = lines[0].split(":")[1].trim()
-            val raffleId = UUID.randomUUID()
-            val participants = lines.filter { it -> !it.contains("Raffle Name:") }.map { line ->
-                val cleanedLine =
-                        line.replace("Name: ", "")
-                                .replace(" Entries", "")
-                val name = cleanedLine.split(":")[0]
-                val count = cleanedLine.split(":")[1].trim().toInt()
-                Participant(name, raffleId, count)
-            }.toSet()
-            return Raffle(raffleName, participants, raffleId)
+        fun toRaffle(raw: String): Option<Raffle> {
+            return try {
+                val lines = raw.lines()
+                val raffleName = lines[0].split(":")[1].trim()
+                val raffleId = UUID.randomUUID()
+                val participants = lines.filter { it -> !it.contains("Raffle Name:") }.map { line ->
+                    val cleanedLine =
+                            line.replace("Name: ", "")
+                                    .replace(" Entries", "")
+                    val name = cleanedLine.split(":")[0]
+                    val count = cleanedLine.split(":")[1].trim().toInt()
+                    Participant(name, raffleId, count)
+                }.toSet()
+                Option.Some(Raffle(raffleName, participants, raffleId))
+            }catch (e: Exception){
+                Option.None
+            }
         }
     }
 }
@@ -110,7 +115,7 @@ class Repository(activity: Activity, keyRepo: String) {
     fun saveString(key: String, value: String) {
         with(this.sharedPref.edit()) {
             putString(key, value)
-            commit()
+            apply()
         }
     }
 

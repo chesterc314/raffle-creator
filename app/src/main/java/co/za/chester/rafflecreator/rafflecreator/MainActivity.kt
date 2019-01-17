@@ -1,6 +1,5 @@
 package co.za.chester.rafflecreator.rafflecreator
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
@@ -51,9 +50,9 @@ class MainActivity : AppCompatActivity() {
             val alertDialogBuilder = AlertDialog.Builder(this)
             alertDialogBuilder
                     .setMessage("No raffles added, please press + button below to add a raffle")
-                    .setPositiveButton("OK", { dialog, _ ->
+                    .setPositiveButton("OK") { dialog, _ ->
                         dialog.dismiss()
-                    })
+                    }
             val alertDialog = alertDialogBuilder.create()
             alertDialog.show()
         }
@@ -65,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             alertDialogBuilder
                     .setCancelable(false)
                     .setMessage("Are you sure you want to remove this Raffle: ${values[position].name}")
-                    .setPositiveButton("Yes", { dialog, _ ->
+                    .setPositiveButton("Yes") { dialog, _ ->
                         val maybeParticipantData = raffleRepository.readString(getString(R.string.participant_key))
                         val participants = maybeParticipantData.map { participant ->
                             ArrayList(Participant.toObjects(participant))
@@ -81,11 +80,11 @@ class MainActivity : AppCompatActivity() {
                         raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))
                         adapter.notifyDataSetChanged()
                         dialog.dismiss()
-                    })
-                    .setNegativeButton("No",
-                            { dialog, _ ->
-                                dialog.cancel()
-                            })
+                    }
+                    .setNegativeButton("No"
+                    ) { dialog, _ ->
+                        dialog.cancel()
+                    }
 
             val alertDialog = alertDialogBuilder.create()
             alertDialog.show()
@@ -125,7 +124,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun importRaffle(view:View) {
+    fun importRaffle(view: View) {
         val layoutInflater = LayoutInflater.from(this)
         val promptView = layoutInflater.inflate(R.layout.raffle_import_prompt, null)
         val alertDialogBuilder = AlertDialog.Builder(this)
@@ -137,20 +136,24 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("Import") { dialog, _ ->
                     val raffleImport = raffleImportInput.text.toString()
                     if (!raffleImport.isEmpty()) {
-                        Toast.makeText(this, "Imported", Toast.LENGTH_LONG).show()
-                        val raffle = Raffle.toRaffle(raffleImport)
-                        raffles.add(raffle)
-                        raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))
-                        val maybeParticipantData = raffleRepository.readString(getString(R.string.participant_key))
-                        val allParticipants = maybeParticipantData.map { participant ->
-                            ArrayList(Participant.toObjects(participant))
+                        val maybeRaffle = Raffle.toRaffle(raffleImport)
+                        maybeRaffle.map { it ->
+                            raffles.add(it)
+                            raffleRepository.saveString(getString(R.string.raffle_name_key), Raffle.fromObjects(raffles))
+                            val maybeParticipantData = raffleRepository.readString(getString(R.string.participant_key))
+                            val allParticipants = maybeParticipantData.map { participant ->
+                                ArrayList(Participant.toObjects(participant))
+                            }.getOrElse {
+                                ArrayList()
+                            }
+                            allParticipants.addAll(it.participants.toList())
+                            raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(allParticipants))
+                            customRecyclerViewAdapter.notifyDataSetChanged()
+                            Toast.makeText(this, "Imported", Toast.LENGTH_LONG).show()
+                            openParticipantActivity(it)
                         }.getOrElse {
-                            ArrayList()
+                            Toast.makeText(this, "Invalid Raffle Raw Import entered", Toast.LENGTH_LONG).show()
                         }
-                        allParticipants.addAll(raffle.participants.toList())
-                        raffleRepository.saveString(getString(R.string.participant_key), Participant.fromObjects(allParticipants))
-                        customRecyclerViewAdapter.notifyDataSetChanged()
-                        openParticipantActivity(raffle)
                         dialog.dismiss()
                     } else {
                         Toast.makeText(this, "No Raffle Raw Import entered", Toast.LENGTH_LONG).show()
