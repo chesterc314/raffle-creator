@@ -1,4 +1,4 @@
-package co.za.chester.rafflecreator.rafflecreator
+package co.za.chester.rafflecreator.premium
 
 import android.content.Context
 import android.media.MediaPlayer

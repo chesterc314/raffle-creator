@@ -1,4 +1,4 @@
-package co.za.chester.rafflecreator.rafflecreator
+package co.za.chester.rafflecreator.premium
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,9 +12,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
-import co.za.chester.rafflecreator.rafflecreator.domain.Participant
-import co.za.chester.rafflecreator.rafflecreator.domain.Raffle
-import co.za.chester.rafflecreator.rafflecreator.domain.Repository
+import co.za.chester.rafflecreator.premium.domain.Participant
+import co.za.chester.rafflecreator.premium.domain.Raffle
+import co.za.chester.rafflecreator.premium.domain.Repository
 import org.funktionale.option.getOrElse
 
 

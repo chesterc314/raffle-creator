@@ -1,4 +1,4 @@
-package co.za.chester.rafflecreator.rafflecreator
+package co.za.chester.rafflecreator.premium
 
 import android.annotation.TargetApi
 import android.content.Intent
@@ -20,9 +20,9 @@ import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import co.za.chester.rafflecreator.rafflecreator.domain.Participant
-import co.za.chester.rafflecreator.rafflecreator.domain.Raffle
-import co.za.chester.rafflecreator.rafflecreator.domain.Repository
+import co.za.chester.rafflecreator.premium.domain.Participant
+import co.za.chester.rafflecreator.premium.domain.Raffle
+import co.za.chester.rafflecreator.premium.domain.Repository
 import org.funktionale.option.Option
 import org.funktionale.option.firstOption
 import org.funktionale.option.getOrElse

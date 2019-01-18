@@ -7,10 +7,10 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "co.za.chester.rafflecreator.rafflecreator"
+        applicationId "co.za.chester.rafflecreator.rafflecreator.premium"
         minSdkVersion 19
         targetSdkVersion 26
-        versionCode 1
+        versionCode 2
         versionName "2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

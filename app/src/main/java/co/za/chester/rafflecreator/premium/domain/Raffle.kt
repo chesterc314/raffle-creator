@@ -1,4 +1,4 @@
-package co.za.chester.rafflecreator.rafflecreator.domain
+package co.za.chester.rafflecreator.premium.domain
 
 import android.app.Activity
 import android.content.Context
