@@ -195,7 +195,9 @@ class RaffleActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     shareIntent.action = Intent.ACTION_SEND
                     val participantNamesForSharing: String = participants
                             .sortedBy { p -> p.name }
-                            .fold("") { acc, p -> acc + "Name: ${p.name} Entries: ${p.entryCount}\n" }
+                            .foldIndexed("") { i, acc, p ->
+                                acc + "Name: ${p.name} Entries: ${p.entryCount}${if((participants.size - 1) == i){""}else{"\n"}}"
+                            }
                     shareIntent.putExtra(Intent.EXTRA_TEXT, "Raffle Name: $raffleName\n$participantNamesForSharing")
                     shareIntent.type = "text/plain"
                     startActivity(Intent.createChooser(shareIntent, "Share with"))
